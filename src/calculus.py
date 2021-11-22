@@ -31,18 +31,22 @@ def metricsCalculus(data):
     moving_time = 0
     downtime = 0
 
+    # serial e criação de dataframe para manipulação
     serial = int(data[1]['serial'])
     df = pd.DataFrame.from_records(data)
 
+    # a partir de um loop calcula tanto a distancia total (com a variação das linhas a partir do valor da coluna)
+    # quanto analisa se há situação de movimento, acrescentando então o tempo de maneira prática
     for i, r in df.iterrows():
         if i != 0:
             total_distance += distanceCalculus(r['latitude'], r['longitude'], df.iloc[i - 1]['latitude'], df.iloc[i - 1]['longitude'])
 
             if r['situacao_movimento'] == True:
-                moving_time += 60 #60 minutos = 1 hora
+                moving_time += 60 #60 segundos (= 1 minuto)
             else:
-                downtime += 60 #60 minutos = 1 hora
+                downtime += 60 #60 segundos (= 1 minuto)
 
+    # retorno
     payload = {
         'distancia_percorrida': total_distance,
 		'tempo_em_movimento': moving_time, #em segundos 
@@ -56,10 +60,12 @@ def metricsCalculus(data):
 
 ## função para coleta de dados
 def returnMetrics(serial, datahora_inicio, datahora_fim):
+    # pega o serial e converte para int, e as datahora para datetime no formato correto
     serial = int(serial)
     datahora_inicio = int(datetime(datahora_inicio, "%d/%m/%Y %H:%M:%S").timestamp())
     datahora_fim = int(datetime(datahora_fim, "%d/%m/%Y %H:%M:%S").timestamp())
 
+    # conexão com o banco de dados
     db = connection_database()
     data = db.dados_rastreamento.find({"serial": serial, "datahora":{"$gte": datahora_inicio,"$lte": datahora_fim}}, {'_id': False})
 

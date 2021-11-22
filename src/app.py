@@ -13,14 +13,18 @@ class MainHandler(RequestHandler):
 ## endpoints do cálculo de métricas
 class MetricsCalculusHandler(RequestHandler):
     def post(self):
+        #procura as principais informais por meio das colunas
         serial = self.get_argument('serial', None)
         datahora_inicio = self.get_argument('datahora_inicio', None)
         datahora_fim = self.get_argument('datahora_fim', None)
   	    
+        # passa os parametros para a função de retorno das métricas
         data = returnMetrics(serial, datahora_inicio, datahora_fim)
 
+        # calcula os valores agora filtrados
         payload = metricsCalculus(data)
 
+        # conexão com banco de dados para salvar a análise feita
         db = connection_database()
         results = db['resultados_emanuelle']
         results.insert_one(payload)
@@ -35,9 +39,12 @@ class MetricsCalculusHandler(RequestHandler):
 # endpoints do retorno de métricas
 class MetricsReturnHandler(RequestHandler):
     def get(self):
+        # conecta com banco de dados e procura a ultima analise feita
         db = connection_database()
         results = db.resultados_emanuelle.find({}, {'_id': False})
         lastResult = results.sort("_id", -1).limit(1)
+
+        # output do dado encontrado
         self.write(dumps(lastResult))
 
 
